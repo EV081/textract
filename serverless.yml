@@ -1,0 +1,48 @@
+org: textractorg
+service: textract
+
+provider:
+  name: aws
+  runtime: python3.12
+  memorySize: 1024
+  timeout: 30
+  iam:
+    role: arn:aws:iam::468251834706:role/LabRole
+  environment:
+    DEFAULT_BUCKET: textract-bucket-123456789
+functions:
+  textract:
+    handler: textract.lambda_handler  # Asegúrarse de que el nombre del archivo y la función coincidan
+    package:
+      include:
+        - ./**  # Incluir todo el contenido del directorio
+    events:
+      - http:
+          path: textract
+          method: post
+          cors: true
+          integration: lambda
+  uploadS3:
+    handler: uploadS3.lambda_handler  # Asegúrarse de que el nombre del archivo y la función coincidan
+    package:
+      include:
+        - ./**  # Incluir todo el contenido del directorio
+    events:
+      - http:
+          path: uploadS3
+          method: post
+          cors: true
+          integration: lambda 
+
+resources:
+  Resources:
+    TextractBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: textract-bucket-123456789
+        CorsConfiguration:
+          CorsRules:
+            - AllowedHeaders: ["*"]
+              AllowedMethods: ["PUT", "GET", "POST", "HEAD"]
+              AllowedOrigins: ["*"]
+              ExposedHeaders: ["ETag"]
